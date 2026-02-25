@@ -1,0 +1,23 @@
+{
+  "name": "deambulabot",
+  "version": "1.0.0",
+  "description": "Telegram bot for discovering and logging activities using semantic search",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.3.0",
+    "@langchain/openai": "^0.3.0",
+    "@pinecone-database/pinecone": "^4.0.0",
+    "better-sqlite3": "^9.0.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "form-data": "^4.0.0",
+    "langchain": "^0.3.0",
+    "node-fetch": "^3.3.0",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}
