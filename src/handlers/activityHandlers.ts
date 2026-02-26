@@ -1,13 +1,14 @@
 import { SystemMessage } from "@langchain/core/messages";
-import { getPending, deletePending, setPending } from "../db.js";
+import { deletePending, setPending } from "../db.js";
 import { llm, embeddings, index, bot } from "../services/clients.js";
 import { transcribeAudio } from "../services/transcription.js";
 import { sendMessage, downloadFile } from "../utils/helpers.js";
+import { MESSAGES } from "../messages.js";
 import type { PendingActivity } from "../db.js";
 
 export async function handleActivityName(chatId: number, text: string, username: string): Promise<void> {
   setPending(chatId, text, username);
-  await sendMessage(chatId, "Ahora enviame un audio con la descripcion del lugar");
+  await sendMessage(chatId, MESSAGES.sendAudioDescription);
 }
 
 export async function handleDesire(chatId: number, desireText: string): Promise<void> {
@@ -80,9 +81,9 @@ async function upsertAndConfirm(
     }]);
 
     deletePending(chatId);
-    await sendMessage(chatId, "Ya guardé tu actividad!");
+    await sendMessage(chatId, MESSAGES.activitySaved);
   } catch (err) {
     console.error("Upsert error:", err);
-    await sendMessage(chatId, "Hubo un error. La descripcion no pudo ser guardada");
+    await sendMessage(chatId, MESSAGES.saveError);
   }
 }

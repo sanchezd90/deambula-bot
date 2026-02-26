@@ -3,6 +3,7 @@ import type TelegramBot from "node-telegram-bot-api";
 import { getPending } from "../db.js";
 import { llm } from "../services/clients.js";
 import { sendMessage } from "../utils/helpers.js";
+import { MESSAGES } from "../messages.js";
 import {
   handleActivityName,
   handleDesire,
@@ -37,7 +38,7 @@ export async function handleUpdate(update: TelegramBot.Update): Promise<void> {
   if (msg.voice) {
     const pending = getPending(chatId);
     if (!pending) {
-      await sendMessage(chatId, "Define primero una actividad");
+      await sendMessage(chatId, MESSAGES.defineActivityFirst);
       return;
     }
     await handleVoiceDescription(chatId, messageId, msg.voice.file_id, pending);
@@ -56,17 +57,13 @@ export async function handleUpdate(update: TelegramBot.Update): Promise<void> {
       if (pending) {
         await handleTextDescription(chatId, messageId, msg.text, pending);
       } else {
-        await sendMessage(chatId,
-          "Parece que estas describiendo una actividad sin mencionar su nombre primero. " +
-          'Decime el nombre de la actividad expresada como una accion (p. ej. "Sentarse a comer en el Banco Rojo").'
-        );
+        await sendMessage(chatId, MESSAGES.descriptionWithoutName);
       }
     } else {
-      await sendMessage(chatId,
-        "Hola! Estoy aca para ayudarte a deambular. " +
-        'Si queres agregar una nueva actividad dame el nombre expresado como una accion (p. ej. "Sentarse a comer en el Banco Rojo"). ' +
-        "Si queres consultar qué podrías hacer decime de qué tenés ganas o qué tenés en mente."
-      );
+      await sendMessage(chatId, MESSAGES.welcome);
     }
   }
+
+  await sendMessage(chatId, MESSAGES.welcome);
+
 }
