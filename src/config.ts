@@ -7,4 +7,4 @@ export const config = {
   PINECONE_INDEX: process.env.PINECONE_INDEX,
   PORT: Number(process.env.PORT) || 3000,
   WEBHOOK_URL: process.env.WEBHOOK_URL,
-};
+} as const;

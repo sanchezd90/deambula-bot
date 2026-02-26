@@ -2,7 +2,7 @@ import FormData from "form-data";
 import fetch from "node-fetch";
 import { config } from "../config.js";
 
-export async function transcribeAudio(audioBuffer, filename) {
+export async function transcribeAudio(audioBuffer: Buffer, filename: string): Promise<string> {
   const form = new FormData();
   form.append("file", audioBuffer, { filename, contentType: "audio/ogg" });
   form.append("model", "whisper-1");
@@ -16,13 +16,13 @@ export async function transcribeAudio(audioBuffer, filename) {
       Authorization: `Bearer ${config.OPENAI_API_KEY}`,
       ...form.getHeaders(),
     },
-    body: form,
+    body: form as import("node-fetch").RequestInit["body"],
   });
 
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`Whisper error ${res.status}: ${err}`);
   }
-  const json = await res.json();
+  const json = (await res.json()) as { text: string };
   return json.text;
 }

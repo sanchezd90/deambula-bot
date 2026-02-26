@@ -1,4 +1,5 @@
 import { SystemMessage } from "@langchain/core/messages";
+import type TelegramBot from "node-telegram-bot-api";
 import { getPending } from "../db.js";
 import { llm } from "../services/clients.js";
 import { sendMessage } from "../utils/helpers.js";
@@ -9,7 +10,7 @@ import {
   handleVoiceDescription,
 } from "./activityHandlers.js";
 
-async function classifyIntent(text) {
+async function classifyIntent(text: string): Promise<string> {
   const response = await llm.invoke([
     new SystemMessage(
       `Based on the following text determine if the user is giving the name for an activity, ` +
@@ -17,12 +18,13 @@ async function classifyIntent(text) {
       `if the user is expressing a desire; if the user is giving a wide description of a place or activity; or other. ` +
       `Output the word "name", "desire", "description" or "other" respectively. Text:${text}`
     ),
-  ], { maxTokens: 20 });
-  return response.content.trim().toLowerCase().replace(/[^a-z]/g, "");
+  ], { maxTokens: 20 } as Record<string, unknown>);
+  return String(response.content).trim().toLowerCase().replaceAll(/[^a-z]/g, "");
 }
 
-export async function handleUpdate(update) {
+export async function handleUpdate(update: TelegramBot.Update): Promise<void> {
   const msg = update.message;
+  console.log(msg);
   if (!msg) {
     console.log("[webhook] Update has no message, skipping");
     return;
@@ -35,9 +37,10 @@ export async function handleUpdate(update) {
   if (msg.voice) {
     const pending = getPending(chatId);
     if (!pending) {
-      return sendMessage(chatId, "Define primero una actividad");
+      await sendMessage(chatId, "Define primero una actividad");
+      return;
     }
-    await handleVoiceDescription(chatId, messageId,  msg.voice.file_id, pending);
+    await handleVoiceDescription(chatId, messageId, msg.voice.file_id, pending);
     return;
   }
 
