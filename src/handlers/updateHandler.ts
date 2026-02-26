@@ -1,6 +1,7 @@
 import { SystemMessage } from "@langchain/core/messages";
 import type TelegramBot from "node-telegram-bot-api";
 import { getPending } from "../db.js";
+import { IntentSchema } from "../schemas.js";
 import { llm } from "../services/clients.js";
 import { sendMessage } from "../utils/helpers.js";
 import { MESSAGES } from "../messages.js";
@@ -11,21 +12,23 @@ import {
   handleVoiceDescription,
 } from "./activityHandlers.js";
 
-async function classifyIntent(text: string): Promise<string> {
-  const response = await llm.invoke([
+const structuredLlm = llm.withStructuredOutput(IntentSchema);
+
+async function classifyIntent(text: string) {
+  const response = await structuredLlm.invoke([
     new SystemMessage(
       `Based on the following text determine if the user is giving the name for an activity, ` +
       `which will be a sentence starting with an infinitive such as "Caminar a la tarde por la costanera"; ` +
       `if the user is expressing a desire; if the user is giving a wide description of a place or activity; or other. ` +
-      `Output the word "name", "desire", "description" or "other" respectively. Text:${text}`
+      `Text: ${text}`
     ),
   ], { maxTokens: 20 } as Record<string, unknown>);
-  return String(response.content).trim().toLowerCase().replaceAll(/[^a-z]/g, "");
+  return response.intent;
 }
 
 export async function handleUpdate(update: TelegramBot.Update): Promise<void> {
   const msg = update.message;
-  console.log(msg);
+  
   if (!msg) {
     console.log("[webhook] Update has no message, skipping");
     return;
@@ -62,6 +65,7 @@ export async function handleUpdate(update: TelegramBot.Update): Promise<void> {
     } else {
       await sendMessage(chatId, MESSAGES.welcome);
     }
+    return;
   }
 
   await sendMessage(chatId, MESSAGES.welcome);
